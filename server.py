@@ -9,7 +9,6 @@ from nltk.probability import FreqDist
 import PyPDF2
 import io
 import magic
-import textract
 from docx import Document
 import json
 import re
@@ -37,14 +36,13 @@ def extract_text_from_file(file_bytes, mime_type):
         if 'pdf' in mime_type:
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
             text = ' '.join(page.extract_text() for page in pdf_reader.pages)
-        elif 'word' in mime_type:
+        elif 'word' in mime_type or 'docx' in mime_type:
             doc = Document(io.BytesIO(file_bytes))
             text = ' '.join(paragraph.text for paragraph in doc.paragraphs)
         elif 'text' in mime_type:
             text = file_bytes.decode('utf-8')
         else:
-            # Use textract as fallback for other formats
-            text = textract.process(io.BytesIO(file_bytes)).decode('utf-8')
+            raise Exception('Unsupported file format')
         
         return text.strip()
     except Exception as e:
@@ -83,19 +81,20 @@ def analyze_text(text):
         
         # Generate summary using spaCy
         sentences = [sent.text.strip() for sent in doc.sents]
-        summary = []
-        
-        for sent in sentences[:3]:  # Take first 3 sentences as summary
-            summary.append(sent)
+        summary = sentences[:3]  # Take first 3 sentences as summary
         
         # Calculate document complexity score
         words = word_tokenize(text)
-        avg_word_length = sum(len(word) for word in words) / len(words)
+        avg_word_length = sum(len(word) for word in words) / len(words) if words else 0
         unique_words = len(set(words))
         
         # Calculate readability score (simplified Flesch-Kincaid)
         total_sentences = len(sentences)
         total_words = len(words)
+        
+        if total_words == 0:
+            raise Exception("Document is empty")
+            
         score = (
             (overall_sentiment['positive'] * 100) +
             (unique_words / total_words * 50) +
