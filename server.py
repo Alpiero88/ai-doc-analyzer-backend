@@ -25,7 +25,11 @@ nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 
 # Load spaCy model
-nlp = spacy.load('en_core_web_sm')
+try:
+    nlp = spacy.load('en_core_web_sm')
+except OSError:
+    spacy.cli.download('en_core_web_sm')
+    nlp = spacy.load('en_core_web_sm')
 
 def extract_text_from_file(file_bytes, mime_type):
     """Extract text from various file formats."""
@@ -139,4 +143,4 @@ def analyze():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=10000)
