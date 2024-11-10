@@ -14,11 +14,10 @@ import json
 import re
 
 app = Flask(__name__)
-# Enable CORS for all domains in development
 CORS(app, resources={
     r"/*": {
-        "origins": "*",  # Allow all origins
-        "methods": ["POST", "OPTIONS"],
+        "origins": ["https://verdant-youtiao-abef68.netlify.app", "http://localhost:5173"],
+        "methods": ["POST", "OPTIONS", "GET"],
         "allow_headers": ["Content-Type", "Accept"]
     }
 })
@@ -127,12 +126,8 @@ def analyze_text(text):
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
 def analyze():
     if request.method == 'OPTIONS':
-        response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Accept')
-        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
-        return response
-        
+        return '', 204
+    
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
     
